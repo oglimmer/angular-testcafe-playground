@@ -1,0 +1,10 @@
+<div data-test="userId" *ngIf="user$ | async">
+    User:
+    {{user$ | async}}
+</div>
+<div *ngIf="!(user$ | async)">
+    <form #loginForm="ngForm">
+        <input type="text" [(ngModel)]="userId" name="userid" />
+        <button type="button" (click)="login();">Login</button>
+    </form>
+</div>

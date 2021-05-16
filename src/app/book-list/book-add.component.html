@@ -1,0 +1,9 @@
+<div>
+    <form #bookForm="ngForm">
+        <label for="title">Title</label>
+        <input class="form-control" [(ngModel)]="model.title" id="title" name="title" required data-test="newBook-titel" />
+        <label for="authors">Authors</label>
+        <input class="form-control" [(ngModel)]="model.authors" id="authors" name="authors" data-test="newBook-authors" />
+        <button type="button" (click)="createNewBook(); bookForm.reset()">New Book</button>
+    </form>
+</div>
