@@ -1,3 +1,9 @@
 .idea/
 dist/
 node_modules/
+
+.terraform.lock.hcl
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+terraform/*.zip

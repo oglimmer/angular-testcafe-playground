@@ -26,7 +26,7 @@ export class GoogleBooksService {
     })
   }
 
-  private readonly REST_RESOURCE_ENDPOINT = 'https://6z1nxth9oi.execute-api.eu-central-1.amazonaws.com/test/book';
+  private readonly REST_RESOURCE_ENDPOINT = 'https://d5e3kgyg0e.execute-api.eu-central-1.amazonaws.com/prod/book';
 
   storeNewBook(book: Book): Observable<void> {
     return this.http.post<void>(this.REST_RESOURCE_ENDPOINT, {
