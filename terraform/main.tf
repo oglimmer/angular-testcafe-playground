@@ -10,6 +10,11 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 3.0"
     }
+    digitalocean = {
+      source = "digitalocean/digitalocean"
+      version = "2.8.0"
+    }
+
   }
 }
 provider "aws" {
@@ -433,10 +438,86 @@ resource "aws_dynamodb_table" "book_dynamodb_table" {
 }
 
 ##
+##
+##
+
+resource "tls_private_key" "example" {
+  algorithm = "RSA"
+}
+
+resource "tls_self_signed_cert" "example" {
+  key_algorithm   = "RSA"
+  private_key_pem = tls_private_key.example.private_key_pem
+
+  subject {
+    common_name  = "example.com"
+    organization = "ACME Examples, Inc"
+  }
+
+  validity_period_hours = 12
+
+  allowed_uses = [
+    "key_encipherment",
+    "digital_signature",
+    "server_auth",
+  ]
+}
+
+data "aws_acm_certificate" "amazon_issued_oglimmer_cert" {
+  domain      = "*.oglimmer.de"
+  types       = ["AMAZON_ISSUED"]
+  most_recent = true
+}
+
+
+resource "aws_api_gateway_domain_name" "book_api_gateway_domainname" {
+  domain_name              = "mega-api.oglimmer.de"
+  regional_certificate_arn = data.aws_acm_certificate.amazon_issued_oglimmer_cert.arn
+
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+}
+
+resource "aws_api_gateway_base_path_mapping" "book_api_gateway_domainname_mapping" {
+  api_id      = aws_api_gateway_rest_api.book_api_gateway.id
+  stage_name  = aws_api_gateway_stage.book_api_gateway_state.stage_name
+  domain_name = aws_api_gateway_domain_name.book_api_gateway_domainname.domain_name
+}
+
+
+##
 ## OUTPUTS
 ##
 
 
 output "book-rest-api-endpoint" {
   value = aws_api_gateway_stage.book_api_gateway_state.invoke_url
+}
+
+output "book-rest-api-endpoint-domain" {
+  value = aws_api_gateway_domain_name.book_api_gateway_domainname.regional_domain_name
+}
+
+
+##
+## DIGITAL OCEAN - DNS
+##
+
+variable "do_api_token" {}
+
+provider "digitalocean" {
+  token = var.do_api_token
+}
+
+data "digitalocean_domain" "do_domain_oglimmer" {
+  name = "oglimmer.de"
+}
+
+resource "digitalocean_record" "do_domain_oglimmer_megaapi" {
+  domain = data.digitalocean_domain.do_domain_oglimmer.name
+  type   = "CNAME"
+  name   = "mega-api"
+  value  = "${aws_api_gateway_domain_name.book_api_gateway_domainname.regional_domain_name}."
+  ttl = 60
 }
