@@ -463,21 +463,6 @@ resource "aws_api_gateway_base_path_mapping" "book_api_gateway_domainname_mappin
   domain_name = aws_api_gateway_domain_name.book_api_gateway_domainname.domain_name
 }
 
-
-##
-## OUTPUTS
-##
-
-
-output "book-rest-api-endpoint" {
-  value = aws_api_gateway_stage.book_api_gateway_state.invoke_url
-}
-
-output "book-rest-api-endpoint-domain" {
-  value = aws_api_gateway_domain_name.book_api_gateway_domainname.regional_domain_name
-}
-
-
 ##
 ## DIGITAL OCEAN - DNS
 ##
@@ -524,4 +509,8 @@ resource "aws_s3_bucket_object" "cdn_bucket_book_objects" {
   etag = filemd5("../dist/notes-app/${each.value}")
   acl = "public-read"
   content_type = lookup(local.mime_types, regex("\\.[^.]+$", each.value), null)
+}
+
+output "s3-bucket-index" {
+  value = "https://${aws_s3_bucket.cdn_bucket_book.bucket_domain_name}/index.html"
 }
