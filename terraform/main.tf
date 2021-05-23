@@ -438,30 +438,8 @@ resource "aws_dynamodb_table" "book_dynamodb_table" {
 }
 
 ##
+## API GATEWAY - CUSTOM DOMAIN
 ##
-##
-
-resource "tls_private_key" "example" {
-  algorithm = "RSA"
-}
-
-resource "tls_self_signed_cert" "example" {
-  key_algorithm   = "RSA"
-  private_key_pem = tls_private_key.example.private_key_pem
-
-  subject {
-    common_name  = "example.com"
-    organization = "ACME Examples, Inc"
-  }
-
-  validity_period_hours = 12
-
-  allowed_uses = [
-    "key_encipherment",
-    "digital_signature",
-    "server_auth",
-  ]
-}
 
 data "aws_acm_certificate" "amazon_issued_oglimmer_cert" {
   domain      = "*.oglimmer.de"
@@ -520,4 +498,30 @@ resource "digitalocean_record" "do_domain_oglimmer_megaapi" {
   name   = "mega-api"
   value  = "${aws_api_gateway_domain_name.book_api_gateway_domainname.regional_domain_name}."
   ttl = 60
+}
+
+##
+## S3
+##
+
+resource "random_uuid" "bucket_uuid" {
+}
+
+resource "aws_s3_bucket" "cdn_bucket_book" {
+  bucket = "cdn-bucket-book-${random_uuid.bucket_uuid.result}"
+  acl    = "public-read"
+}
+
+locals {
+  mime_types = jsondecode(file("./mime.json"))
+}
+
+resource "aws_s3_bucket_object" "cdn_bucket_book_objects" {
+  for_each = fileset("../dist/notes-app/", "*")
+  bucket = aws_s3_bucket.cdn_bucket_book.id
+  key = each.value
+  source = "../dist/notes-app/${each.value}"
+  etag = filemd5("../dist/notes-app/${each.value}")
+  acl = "public-read"
+  content_type = lookup(local.mime_types, regex("\\.[^.]+$", each.value), null)
 }
