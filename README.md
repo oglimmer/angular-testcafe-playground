@@ -23,4 +23,3 @@ Use terraform
 terraform init
 terraform apply -auto-approve -var do_api_token=$DO_API_TOKEN
 ```
-Use the output variable `book-rest-api-endpoint` in src/app/book-list/books.service.ts
