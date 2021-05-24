@@ -8,7 +8,7 @@ Assuming you have the AWS infrastructure running.
 npm i
 npm run start
 
-npm run 2e2
+npm run e2e
 ```
 
 ## How to set up AWS
